@@ -9,8 +9,6 @@ public static class InputProvider
 
     public static Vector2 GetInputVector()
     {
-        RuntimePlatform runtimePlatform = Application.platform;
-
 #if UNITY_STANDALONE
         float horizontalInput = Input.GetAxis("Horizontal"); 
         float verticaclInput = Input.GetAxis("Vertical");
