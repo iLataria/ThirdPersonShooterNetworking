@@ -2,64 +2,72 @@ using UnityEngine;
 
 public static class InputProvider
 {
-    private static Vector2 touchStartPosition;
-    private static Vector2 touchLastPosition;
-    private static Vector2 inputVector;
+    private static Vector2 _touchStartPosition;
+    private static Vector2 _touchLastPosition;
+    private static Vector2 _inputVector;
 
     public static Vector2 GetInputVector()
     {
 #if UNITY_STANDALONE
-        inputVector = GetKeyboardAxes(ref inputVector);
+        _inputVector = GetKeyboardAxes();
        
 #elif UNITY_ANDROID
-        GetDisplacementEveryFrameTouch(ref inputVector, 20f);
+        _inputVector = GetKeyboardAxes();
+        //_inputVector = GetDisplacementEveryFrameTouch(20f);
 #endif
-        return inputVector;
+        return _inputVector;
     }
 
     private static Vector2 GetKeyboardAxes()
     {
-        Vector2 axes = Vector2.zero;
+        Vector2 inputVector = Vector2.zero;
         float horizontalInput = Input.GetAxis("Horizontal");
         float verticaclInput = Input.GetAxis("Vertical");
-        axes = new Vector2(horizontalInput, verticaclInput);
-        return axes;
+        inputVector = new Vector2(horizontalInput, verticaclInput);
+        inputVector = Vector2.ClampMagnitude(inputVector, 1f);
+        return inputVector;
     }
 
 #if UNITY_ANDROID
-    private static void GetDisplacementFromFirstTouch(ref Vector2 inputVector, float deadZone)
+    private static Vector2 GetDisplacementFromFirstTouch(float deadZone)
     {
+        Vector2 inputVector = Vector2.zero;
+
         if (Input.touchCount > 0)
         {
             Touch touch = Input.GetTouch(0);
 
             if (touch.phase == TouchPhase.Began)
             {
-                touchStartPosition = touch.position;
+                _touchStartPosition = touch.position;
             }
             else if (touch.phase == TouchPhase.Moved)
             {
                 Vector2 touchCurrentPosition = touch.position;
-                float distance = Vector2.Distance(touchCurrentPosition, touchLastPosition);
+                float distance = Vector2.Distance(touchCurrentPosition, _touchLastPosition);
 
                 if (distance <= deadZone)
                 {
-                    return;
+                    return Vector2.zero;
                 }
 
-                Vector2 moveDirection = (touchCurrentPosition - touchStartPosition).normalized;
+                Vector2 moveDirection = (touchCurrentPosition - _touchStartPosition).normalized;
                 inputVector = moveDirection;
-                touchLastPosition = touchCurrentPosition;
+                _touchLastPosition = touchCurrentPosition;
             }
             else if (touch.phase == TouchPhase.Ended)
             {
                 inputVector = Vector2.zero;
             }
         }
+
+        return inputVector;
     }
 
-    private static void GetDisplacementEveryFrameTouch(ref Vector2 inputVector, float deadZone)
+    private static Vector2 GetDisplacementEveryFrameTouch(float deadZone)
     {
+        Vector2 inputVector = Vector2.zero;
+
         if (Input.touchCount > 0)
         {
             Touch touch = Input.GetTouch(0);
@@ -67,22 +75,24 @@ public static class InputProvider
             if (touch.phase == TouchPhase.Moved)
             {
                 Vector2 touchCurrentPosition = touch.position;
-                float distance = Vector2.Distance(touchCurrentPosition, touchLastPosition);
+                float distance = Vector2.Distance(touchCurrentPosition, _touchLastPosition);
 
                 if (distance <= deadZone)
                 {
-                    return;
+                    inputVector = Vector2.zero;
                 }
 
                 Vector2 moveDirection = touch.deltaPosition.normalized;
                 inputVector = moveDirection;
-                touchLastPosition = touchCurrentPosition;
+                _touchLastPosition = touchCurrentPosition;
             }
             else if (touch.phase == TouchPhase.Ended)
             {
                 inputVector = Vector2.zero;
             }
         }
+
+        return inputVector;
     }
 #endif
 }
