@@ -5,6 +5,7 @@ public static class InputProvider
     private static Vector2 _touchStartPosition;
     private static Vector2 _touchLastPosition;
     private static Vector2 _inputVector;
+    private static bool _screenTouched;
 
     public static Vector2 GetInputVector()
     {
@@ -16,6 +17,32 @@ public static class InputProvider
         //_inputVector = GetDisplacementEveryFrameTouch(20f);
 #endif
         return _inputVector;
+    }
+
+    public static Vector2 GetInputScreenPosition()
+    {
+#if UNITY_STANDALONE
+        _touchStartPosition = Input.mousePosition;
+       
+#elif UNITY_ANDROID
+        _touchStartPosition = Input.mousePosition;
+        //_touchStartPosition = Input.touchCount > 0 ? Input.GetTouch(0).position : Vector2.zero;
+#endif
+
+        return _touchStartPosition;
+    }
+
+    public static bool IsScreenTouched()
+    {
+#if UNITY_STANDALONE
+        _screenTouched = Input.GetKeyDown(KeyCode.Mouse0);
+       
+#elif UNITY_ANDROID
+        _screenTouched = Input.GetKeyDown(KeyCode.Mouse0);
+        //_screenTouched = Input.touchCount > 0;
+#endif
+
+        return _screenTouched;
     }
 
     private static Vector2 GetKeyboardAxes()
